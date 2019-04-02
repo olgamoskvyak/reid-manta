@@ -1,0 +1,67 @@
+{
+    "model" : {
+        "type":                 "TripletLoss",
+        "backend":              "InceptionV3",
+        "connect_layer":        -1,
+        "precomp_feat":         false,
+        "frontend":             "glob_pool",
+        "train_from_layer":     0,
+        "input_width":          300,
+        "input_height":         300,
+        "embedding_size":       256,
+        "loss":                 "semi_hard_triplet"
+    },
+    
+    "data": {
+        "train_image_folder":   "data/3_manta_unified",
+        "split_seed":            777  
+        
+    },
+
+    "train": {
+        "pretrained_weights":   "",
+        "batch_size":           32,
+        "learning_rate":        1e-5,
+        "nb_epochs":            400,
+        "log_step":             10,
+        "distance":             "l2",
+        "exp_dir":              "experiments",
+        "exp_id":               "manta-final",
+        "debug":                false,
+        "aug_rate":            "manta",
+        "cl_per_batch":        15,
+        "sampl_per_class":     5,
+        
+        "verbose":             1
+    },
+    
+    "evaluate": {
+        "accuracy_at_k":        [1,2,3,4,5,6,7,8,9,10],
+        "move_to_dataset":      2,
+        "test_set":             "",
+        "n_eval_epochs":        20,
+        "far_target":           0.01
+        
+    },
+    
+    "general": {
+            "stdout-file":          true    
+        
+    },
+    
+    "predict": {
+        "db-emb":              ["examples/manta/embeddings"]
+        
+    },
+    
+    "prod": {
+        "prefix":              "manta-db",
+        "output":              "examples/manta/localized",
+        "lfile":               "",
+        "embeddings":          "examples/manta/embeddings",
+        "temp":                "examples/manta"
+        
+    }
+
+    
+}
