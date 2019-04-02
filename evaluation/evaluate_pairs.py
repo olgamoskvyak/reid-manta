@@ -1,22 +1,12 @@
 #Code is adapted from https://github.com/davidsandberg/facenet
 import numpy as np
-import os, json, random
+import os
 from sklearn import metrics
-from sklearn.utils import shuffle
-from sklearn.model_selection import KFold
 from scipy import interpolate
-from scipy.optimize import brentq
 import matplotlib.pyplot as plt
-from keras.preprocessing.image import ImageDataGenerator, NumpyArrayIterator, Iterator
-from keras import backend as K
 
 import sys
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-from model.triplet import TripletLoss
-from model.siamese import Siamese
-from utils.preprocessing import read_dataset, resize_imgs, analyse_dataset
-from utils.utils import plot_some
-from utils.batch_generators import PairsImageDataGenerator
 
 
 def evaluate_pairs(images, labels, model, far_target, plot_file, sample_size=None):
@@ -55,7 +45,6 @@ def evaluate_dist(distances, actual_issame, far_target, plot_file=None):
 
 def calculate_val_far_target(thresholds, distances, actual_issame, far_target):
     
-    nrof_pairs = len(actual_issame)
     nrof_thresholds = len(thresholds)
 
     val = 0.
@@ -118,3 +107,4 @@ def plot_roc(tprs, fprs, showFig = True, saveFig = False, figName = 'roc_curve.p
         plt.show()
     if saveFig:
         plt.savefig(figName)
+    plt.close()

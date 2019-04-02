@@ -164,6 +164,7 @@ def plot_model_loss_csv(file, from_epoch=0, showFig = True, saveFig = False, fig
         plt.show()
     if saveFig:
         fig.savefig(figName)
+    plt.close(fig)
         
 def plot_model_loss_acc_csv(file, from_epoch=0, showFig = True, saveFig = False, figName = 'plot.png'):
     model_history= genfromtxt(file, delimiter=',')
@@ -188,6 +189,7 @@ def plot_model_loss_acc_csv(file, from_epoch=0, showFig = True, saveFig = False,
         plt.show()
     if saveFig:
         fig.savefig(figName)
+    plt.close(fig)  
         
     
 def save_res_csv(results, filename):
