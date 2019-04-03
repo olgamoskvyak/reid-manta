@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 from glob import glob
 import os, csv, random
 import numpy as np

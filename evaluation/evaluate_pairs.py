@@ -1,4 +1,7 @@
 #Code is adapted from https://github.com/davidsandberg/facenet
+import matplotlib
+matplotlib.use('Agg')
+
 import numpy as np
 import os
 from sklearn import metrics
