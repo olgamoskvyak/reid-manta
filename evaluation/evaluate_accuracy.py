@@ -48,7 +48,7 @@ def evaluate_1_vs_all(train, train_lbl, test, test_lbl, n_eval_runs=10, move_to_
             acc[k].append(acck(query_lbl, neigh_lbl_run, k=k))
 
     print('Accuracy over {} runs:'.format(n_eval_runs))
-    acc_array = np.array(list(acc.values()), dtype=np.float32)
+    acc_array = np.array([acc[k] for k in k_list], dtype=np.float32)
     acc_runs = np.mean(acc_array, axis=1)*100
     std_runs = np.std(acc_array, axis=1)*100
     print('Accuracy: ', acc_runs)
