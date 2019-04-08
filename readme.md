@@ -1,3 +1,4 @@
+
 # Re-identification of wildlife from natural markings
 
 ## Overview
@@ -14,13 +15,21 @@ Datasets are not included in this project as they are owned by other parties.
 The models have been trained on datasets of manta rays belly patterns (not available publicly) and humpback whale flukes (available from [Kaggle]).
 
 ## Installation
+### Anaconda environment
 The easy way to install python and its packages is using [Anaconda].
 Install all dependencies in Anaconda environment `tensorflow` using provided `tensorflow.yml` file:
 ```
-conda env create -f tensorflow.yml
+conda env create -f environment.yml
 ```
 Activate environment `activate tensorflow` (Windows) or `source activate tensorflow` (for Linux). All further commands are executed in conda environment.
 
+### Dependencies
+ - Python >= 3.6
+ - Tensorflow >= 1.5
+ - Keras >= 2.2
+ - OpenCV >= 3.4
+
+To test the system with pretrained models, [download] the folder `experiments.zip` with model weights and extract it into the project folder.
 
 ## Usage
 ### Image preprocessing
@@ -71,4 +80,4 @@ python predict.py -i test_images/image_1.jpg -c configs/manta.json
 [Mac]: <https://docs.docker.com/docker-for-mac/install/>
 [Kaggle]: <https://www.kaggle.com/c/whale-categorization-playground/data>
 [Anaconda]: <https://www.anaconda.com/download>
-
+[download]: <https://drive.google.com/file/d/14c1naIL1Z7wMFs3JKfYYqGr2nmYRrB1a/view?usp=sharing>
