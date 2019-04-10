@@ -73,6 +73,32 @@ Run command to identify new individuals with a specific network configuration (t
 python predict.py -i test_images/image_1.jpg -c configs/manta.json
 ```
 
+## Test on whales dataset
+Download the archive  of humpback whale flukes `train.zip` from [Kaggle] (registration is required) and extract it into `data` folder.
+
+ - The model has been trained on images of whales with at least 3 images per whale. 
+ - List of images used for training: `examples/whales/whales_to_train_min3.csv`
+ - Precomputed embeddings for training images are saved at `examples/whales/embeddings`
+ - Whales with 2 images per individual are reserved for testing. 
+ - One image from each whale is added to the database. Embeddings are precomputed and saved to `examples/whales/embeddings`. 
+ - Images for testing are listed in `examples/whales/whales_not_trained_2test.csv`
+ 
+Copy files for testing to a separate folder (for convenience only):
+```
+$ python3 copy_files_csv.py -s data/train -t data/whales_test_images -f examples/whales/whales_not_trained_2test.csv
+``` 
+
+Run command to identify whales from the test folder. Default parameters for the program are listed in `configs/whale.json`
+```sh
+$ python3 predict.py -i data/whales_test_images/9f4d33db.jpg -c configs/whale.json
+```
+If ground truth for test images exists in a csv file (filename, label), add the file as an argument. The output will analyse if the prediction is correct (the ground truth labels are not used by the model in any way).
+```sh
+$ python3 predict.py -i data/whales_test_images/9f4d33db.jpg -g examples/whales/whales_not_trained_2test.csv -c configs/whale.json
+```
+The program results are saved to `reid-mapping/whales/predictions`
+Substitute file `9f4d33db.jpg` with any file listed in `examples/whales/whales_not_trained_2test.csv`. The network has not been trained on these whales.
+
 
 ["Robust Re-identification of Manta Rays from Natural Markings by Learning Pose Invariant Embeddings"]:<https://arxiv.org/pdf/1902.10847.pdf>
 [Windows]:<https://docs.docker.com/docker-for-windows/install/#what-to-know-before-you-install>
@@ -81,3 +107,4 @@ python predict.py -i test_images/image_1.jpg -c configs/manta.json
 [Kaggle]: <https://www.kaggle.com/c/whale-categorization-playground/data>
 [Anaconda]: <https://www.anaconda.com/download>
 [download]: <https://drive.google.com/file/d/14c1naIL1Z7wMFs3JKfYYqGr2nmYRrB1a/view?usp=sharing>
+
