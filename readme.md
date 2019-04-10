@@ -85,16 +85,16 @@ Download the archive  of humpback whale flukes `train.zip` from [Kaggle] (regist
  
 Copy files for testing to a separate folder (for convenience only):
 ```
-$ python3 copy_files_csv.py -s data/train -t data/whales_test_images -f examples/whales/whales_not_trained_2test.csv
+$ python copy_files_csv.py -s data/train -t data/whales_test_images -f examples/whales/whales_not_trained_2test.csv
 ``` 
 
 Run command to identify whales from the test folder. Default parameters for the program are listed in `configs/whale.json`
-```sh
-$ python3 predict.py -i data/whales_test_images/9f4d33db.jpg -c configs/whale.json
+```
+$ python predict.py -i data/whales_test_images/9f4d33db.jpg -c configs/whale.json
 ```
 If ground truth for test images exists in a csv file (filename, label), add the file as an argument. The output will analyse if the prediction is correct (the ground truth labels are not used by the model in any way).
-```sh
-$ python3 predict.py -i data/whales_test_images/9f4d33db.jpg -g examples/whales/whales_not_trained_2test.csv -c configs/whale.json
+```
+$ python predict.py -i data/whales_test_images/9f4d33db.jpg -g examples/whales/whales_not_trained_2test.csv -c configs/whale.json
 ```
 The program results are saved to `reid-mapping/whales/predictions`
 Substitute file `9f4d33db.jpg` with any file listed in `examples/whales/whales_not_trained_2test.csv`. The network has not been trained on these whales.
