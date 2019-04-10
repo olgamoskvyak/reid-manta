@@ -10,11 +10,19 @@ USAGE:
 README FIRST:
     Draw a line around object of interest. Mask is saved automatically.
     To change saved mask simply draw a new line. Mask will be updated.
+    
+PREREQUISITES:
+    Embeddings for the database images are precomputed and saved at
+    the location specified in config.prod.embeddings
 
 FUNCTIONALITY:
-    1) The script preprocess the image:
-        a) crop by user provided mask
-        b) 
+    1) Query image is preprocessed:
+        a) the user is asked to draw a line around the pattern of interest (optional)
+        b) query image is cropped by a provided line
+        c) query image is resized to the size specified in the config
+    2) Embeddings for the query image are computed.
+    3) Embeddings for the database images are read from csv files.
+    4) Matching individuals are returned.
 
 ===============================================================================
 '''
