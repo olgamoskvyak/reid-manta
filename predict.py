@@ -43,7 +43,7 @@ argparser = argparse.ArgumentParser(
     description='Predict on image. Find matching individual from a database.')
 
 argparser.add_argument('-i', '--impath', required = True, help='Path to image to process')
-argparser.add_argument('-d', '--display', type=str2bool, help='Display images and predictions on the screen: True of False. Default: False.', default=False)
+argparser.add_argument('-d', '--display', type=str2bool, help='Display images and predictions on the screen: True of False. Default: True.', default=True)
 argparser.add_argument('-c','--conf', help='Path to configuration file', default='configs/config-whale.json')
 argparser.add_argument('-o', '--output', help='Path to output files. Default is in config: prod.temp')
 argparser.add_argument('-g', '--gtruth', help='Ground truth labels for testing. Csv: filename, label (w/headers)')
