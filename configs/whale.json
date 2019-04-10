@@ -53,10 +53,10 @@
     
     "prod": {
         "prefix":              "whale-db",
-        "output":              "data/whales/localized",
-        "lfile":               "data/whales/whales_to_train_min3.csv",
-        "embeddings":          "data/whales/embeddings",
-        "temp":                "data/whales"
+        "output":              "examples/whales/localized",
+        "lfile":               "examples/whales/whales_to_train_min3.csv",
+        "embeddings":          "examples/whales/embeddings",
+        "temp":                "examples/whales"
         
     }
 }
