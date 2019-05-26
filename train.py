@@ -1,17 +1,23 @@
 import argparse, os, sys, json
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 import numpy as np
 from math import ceil
 from datetime import datetime
 from keras.preprocessing.image import ImageDataGenerator
 import keras.backend as K
+from keras.utils import to_categorical
 
 from model.triplet import TripletLoss
-from utils.batch_generators import BatchGenerator
-from utils.preprocessing import read_dataset, analyse_dataset, split_classes
+from model.siamese import Siamese
+from model.triplet_pose_model import TripletLossPoseInv
+from model.classification_model import Classification
+from utils.batch_generators import BatchGenerator, PairsImageDataGenerator
+from utils.preprocessing import read_dataset, analyse_dataset, split_classes, split_classification
 from utils.utils import print_nested, save_res_csv
 from evaluation.evaluate_accuracy import evaluate_1_vs_all
-
 
 argparser = argparse.ArgumentParser(description='Train and validate a model on any dataset')
 
@@ -51,46 +57,8 @@ def _main_(args):
     print('Config parameters:')
     print_nested(config, nesting = -2)
     print('='*40)
-                
-    ##############################
-    #   Construct the model 
-    ##############################
-    INPUT_SHAPE = (config['model']['input_height'], config['model']['input_width'], 3)
-    
-    model_args = dict(backend           = config['model']['backend'],
-                            frontend          = config['model']['frontend'],
-                            input_shape       = INPUT_SHAPE,
-                            embedding_size    = config['model']['embedding_size'],
-                            connect_layer     = config['model']['connect_layer'],
-                            train_from_layer  = config['model']['train_from_layer'],
-                            loss_func         = config['model']['loss'],
-                            weights            = 'imagenet')
-    
-    if config['model']['type'] == 'TripletLoss':
-        mymodel = TripletLoss(**model_args)
-    else:
-        raise Exception('Only TripletLoss is supported')    
-    
-    ##############################
-    #   Load initial weights 
-    ##############################
-    #if continuing experiment => load weights from prev step
-    #if new experiment => use pretrained weights (if any)  
-    SAVED_WEIGHTS = os.path.join(exp_folder, 'best_weights.h5')
-    PRETRAINED_WEIGHTS = config['train']['pretrained_weights']
-    
-    warm_up_flag = False    
-    if os.path.exists(SAVED_WEIGHTS):
-        print("Loading saved weights in ", SAVED_WEIGHTS)
-        mymodel.load_weights(SAVED_WEIGHTS)
-    elif os.path.exists(PRETRAINED_WEIGHTS):
-        print("Loading pre-trained weights in ", PRETRAINED_WEIGHTS)
-        mymodel.load_weights(PRETRAINED_WEIGHTS, by_name=True)
-    else:
-        print("No pre-trained weights are found")
-        warm_up_flag = True
 
-    ###############################
+     ###############################
     #   Get dataset and labels
     ###############################
 
@@ -109,30 +77,91 @@ def _main_(args):
         name2lab.update({v:k for k,v in name2lab.items()})
         train_labels = np.array([name2lab[name] for name in train_names])
         valid_labels = np.array([name2lab[name] for name in valid_names])
-        
+        #if Classification => convert to one-hot encoding
+        if config['model']['type'] == 'Classification':
+            train_labels = to_categorical(train_labels)
+            valid_labels = to_categorical(valid_labels)
     else:
         print('No test set. Splitting train set...')
-        imgs, labels, _ = read_dataset(config['data']['train_image_folder'])   
-        train_imgs, train_labels, valid_imgs, valid_labels = split_classes(imgs, labels, seed=config['data']['split_seed'],
+        imgs, labels, label_dict = read_dataset(config['data']['train_image_folder'])   
+        print('Label encoding: ', label_dict)
+        if config['model']['type'] in ('TripletLoss', 'TripletPose', 'Siamese'):
+            train_imgs, train_labels, valid_imgs, valid_labels = split_classes(imgs, labels, seed=config['data']['split_seed'],
                                                                           split_num=split_num)
-    
-    
+        elif config['model']['type'] == 'Classification':
+            train_imgs, train_labels, valid_imgs, valid_labels = \
+                                    split_classification(imgs, labels, min_imgs=config['evaluate']['move_to_dataset'], 
+                                                                                      return_mask=False)
+        #Convert labels to one-hot encoding:
+            train_labels = to_categorical(train_labels)
+            valid_labels = to_categorical(valid_labels)
+        else:
+            raise Exception('Define Data Split for the model type')
+        #Delete futher unused variables to clear space
+        del imgs
+        del labels
+
+
     analyse_dataset(train_imgs, train_labels, 'train')
     analyse_dataset(valid_imgs, valid_labels, 'valid')
-            
+                       
+    ##############################
+    #   Construct the model 
+    ##############################
+    INPUT_SHAPE = (config['model']['input_height'], config['model']['input_width'], 3)
+    
+    model_args = dict(backend           = config['model']['backend'],
+                            frontend          = config['model']['frontend'],
+                            input_shape       = INPUT_SHAPE,
+                            embedding_size    = config['model']['embedding_size'],
+                            connect_layer     = config['model']['connect_layer'],
+                            train_from_layer  = config['model']['train_from_layer'],
+                            loss_func         = config['model']['loss'],
+                            weights            = 'imagenet')
+    
+    if config['model']['type'] == 'TripletLoss':
+        mymodel = TripletLoss(**model_args)
+    elif config['model']['type'] == 'Siamese':
+            mymodel = Siamese(**model_args)
+    elif config['model']['type'] == 'TripletPose':
+        model_args['n_poses'] = config['model']['n_poses']
+        model_args['two_outputs'] = config['model']['two_outputs']
+        model_args['bs'] = config['train']['cl_per_batch'] * config['train']['sampl_per_class']
+        mymodel = TripletLossPoseInv(**model_args)
+    elif config['model']['type'] == 'Classification':
+        model_args['embedding_size'] = train_labels.shape[1]
+        mymodel = Classification(**model_args)
+    else:
+        raise Exception('Model type {} is not supported'.format(config['model']['type']))
+    
+    ##############################
+    #   Load initial weights 
+    ##############################
+    SAVED_WEIGHTS = os.path.join(exp_folder, 'best_weights.h5')
+    PRETRAINED_WEIGHTS = config['train']['pretrained_weights']
+    
+    if os.path.exists(SAVED_WEIGHTS):
+        print("Loading saved weights in ", SAVED_WEIGHTS)
+        mymodel.load_weights(SAVED_WEIGHTS)
+        warm_up_flag = False
+    elif os.path.exists(PRETRAINED_WEIGHTS):
+        warm_up_flag == False
+    else:
+        print("No pre-trained weights are found")
+        warm_up_flag = True
+
+    
     ############################################
     # Make train and validation generators
     ############################################ 
     
     if config['train']['aug_rate'] == 'manta':
-        gen_args = dict(rotation_range=90,
+        gen_args = dict(rotation_range=360,
             width_shift_range=0.1,
             height_shift_range=0.1,
             zoom_range=0.2,
             data_format=K.image_data_format(),
             fill_mode='nearest',
-            horizontal_flip=True,
-            vertical_flip=True,
             preprocessing_function=mymodel.backend_class.normalize)
     elif config['train']['aug_rate'] == 'whale':
         gen_args = dict(rotation_range=15,
@@ -149,16 +178,45 @@ def _main_(args):
     if config['model']['type'] == 'TripletLoss':
         gen = ImageDataGenerator(**gen_args)
         train_generator = BatchGenerator(train_imgs, train_labels, 
-                                         aug_gen=gen,
-                                         p=config['train']['cl_per_batch'], 
-                                         k=config['train']['sampl_per_class'])
+                                        aug_gen = gen,
+                                        p = config['train']['cl_per_batch'], 
+                                        k = config['train']['sampl_per_class'],
+                                        equal_k = config['train']['equal_k'])
         valid_generator = BatchGenerator(valid_imgs, valid_labels, 
-                                         aug_gen=gen,
-                                         p=config['train']['cl_per_batch'], 
-                                         k=config['train']['sampl_per_class'])
+                                        aug_gen = gen,
+                                        p = config['train']['cl_per_batch'], 
+                                        k = config['train']['sampl_per_class'],
+                                        equal_k = config['train']['equal_k'])
         
+    elif config['model']['type'] == 'TripletPose':
+        gen = ImageDataGenerator(**gen_args)
+
+        gen_params = dict( aug_gen = gen,
+                            p = config['train']['cl_per_batch'], 
+                            k = config['train']['sampl_per_class'],
+                            equal_k = config['train']['equal_k'],
+                            n_poses = config['model']['n_poses'],
+                            rotate_poses = config['model']['rotate_poses'],
+                            flatten_batch= True,
+                            two_outputs = config['model']['two_outputs'],
+                            perspective = config['model']['perspective'])
+
+        train_generator = BatchGenerator(train_imgs, train_labels, **gen_params)
+        valid_generator = BatchGenerator(valid_imgs, valid_labels, **gen_params)
+
+    elif config['model']['type'] == 'Siamese':
+        gen = PairsImageDataGenerator(**gen_args)
+        train_generator = gen.flow(train_imgs, train_labels,
+                                        batch_size=config['train']['batch_size'], seed=0)
+        valid_generator = gen.flow(valid_imgs, valid_labels,
+                                        batch_size=config['train']['batch_size'], seed=1)
+
+    elif config['model']['type'] == 'Classification':
+        gen = ImageDataGenerator(**gen_args)
+        train_generator = gen.flow(train_imgs, train_labels, batch_size=config['train']['batch_size'])
+        valid_generator = gen.flow(valid_imgs, valid_labels, batch_size=config['train']['batch_size'])
     else:
-        raise Exception('Model type is not supported')
+        raise Exception('Define Data Generator for the model type')
         
 
     #Compute preprocessing time:
@@ -174,11 +232,13 @@ def _main_(args):
     
     n_iter = ceil(config['train']['nb_epochs'] / config['train']['log_step'])
     
-    if config['model']['type'] == 'TripletLoss':
-        batch_size = config['train']['cl_per_batch'] * config['train']['sampl_per_class']
+    if config['model']['type'] in ('TripletLoss', 'TripletPose'):
+            batch_size = config['train']['cl_per_batch'] * config['train']['sampl_per_class']
+    elif config['model']['type'] in ('Siamese', 'Classification'):
+        batch_size = config['train']['batch_size']
     else:
         raise Exception('Define batch size for a model type!')
-    steps_per_epoch = train_imgs.shape[0] // batch_size
+    steps_per_epoch = train_imgs.shape[0] // batch_size + 1
         
     print('Steps per epoch: {}'.format(steps_per_epoch))
     
@@ -193,13 +253,15 @@ def _main_(args):
                                  distance           = config['train']['distance'],
                                  saved_weights_name = SAVED_WEIGHTS,
                                  logs_file          = LOGS_FILE,
-                                 plot_file          = PLOT_FILE,
                                  debug              = config['train']['debug'])
     
     for iteration in range(n_iter):
         print('-------------Starting iteration {} -------------------'.format(iteration+1))
         startTrainingTime = datetime.now()
         
+        #Add weights to balance losses if required
+        weights = [1., 1.]
+
         mymodel.train(  train_gen           = train_generator,
                          valid_gen          = valid_generator,
                          nb_epochs          = config['train']['log_step'], 
@@ -209,48 +271,51 @@ def _main_(args):
                          distance           = config['train']['distance'],
                          saved_weights_name = SAVED_WEIGHTS,
                          logs_file          = LOGS_FILE,
-                         plot_file          = PLOT_FILE,
-                         debug              = config['train']['debug'])
+                         debug              = config['train']['debug'],
+                         weights            = weights)
         ############################################
         # Plot training history
         ############################################
         mymodel.plot_history(LOGS_FILE, from_epoch=0, showFig = False, saveFig = True, figName = PLOT_FILE)
        
-        print('Evaluating...')
-        train_preds = mymodel.preproc_predict(train_imgs, config['train']['batch_size'])
-        valid_preds = mymodel.preproc_predict(valid_imgs, config['train']['batch_size'])
-        
-        acc, stdev = evaluate_1_vs_all(train_preds, train_labels, valid_preds, valid_labels,
-                                                 n_eval_runs=config['evaluate']['n_eval_epochs'], 
-                                                 move_to_db = config['evaluate']['move_to_dataset'],
-                                                 k_list = config['evaluate']['accuracy_at_k'])
-    
-        #Calc execution time for each iteration
-        iterationTime = datetime.now() - startTrainingTime
-        print('Iteration {}, time {}'.format(iteration+1, iterationTime))
-        
-        #Collect data for logs
-        result = dict()
-        result['date_time'] = datetime.now()
-        result['config'] = config_path
-        result['experiment_id'] = exp_folder
-        result['iteration_time'] = iterationTime
-        result['images'] = config['data']['train_image_folder']
-        result['input_height'] = config['model']['input_height']
-        result['input_width'] = config['model']['input_width']
-        result['backend'] = config['model']['backend']
-        result['connect_layer'] = config['model']['connect_layer']
-        result['frontend'] = config['model']['frontend']
-        result['train_from_layer'] = config['model']['train_from_layer']
-        result['embedding_size'] = config['model']['embedding_size']
-        result['learning_rate'] = config['train']['learning_rate']
-        result['nb_epochs'] = config['train']['log_step']
-        result['acc1'] = round(acc[1], 2)
-        result['acc5'] = round(acc[5], 2)
-        result['acc10'] = round(acc[10], 2)
-        result['move_to_dataset'] = config['evaluate']['move_to_dataset']
+        if config['model']['type'] in ('TripletLoss', 'TripletPose', 'Siamese'):
+            print('Evaluating...')
+            train_preds = mymodel.preproc_predict(train_imgs, config['train']['batch_size'])
+            valid_preds = mymodel.preproc_predict(valid_imgs, config['train']['batch_size'])
+            
+            print('Shape of computed predictions', train_preds.shape, valid_preds.shape)
 
-        save_res_csv(result, ALL_EXP_LOG)
+            acc, stdev = evaluate_1_vs_all(train_preds, train_labels, valid_preds, valid_labels,
+                                                    n_eval_runs=config['evaluate']['n_eval_epochs'], 
+                                                    move_to_db = config['evaluate']['move_to_dataset'],
+                                                    k_list = config['evaluate']['accuracy_at_k'])
+        
+            #Calc execution time for each iteration
+            iterationTime = datetime.now() - startTrainingTime
+            print('Iteration {} finished, time {}'.format(iteration+1, iterationTime))
+            
+            #Collect data for logs
+            result = dict()
+            result['date_time'] = datetime.now()
+            result['config'] = config_path
+            result['experiment_id'] = exp_folder
+            result['iteration_time'] = iterationTime
+            result['images'] = config['data']['train_image_folder']
+            result['input_height'] = config['model']['input_height']
+            result['input_width'] = config['model']['input_width']
+            result['backend'] = config['model']['backend']
+            result['connect_layer'] = config['model']['connect_layer']
+            result['frontend'] = config['model']['frontend']
+            result['train_from_layer'] = config['model']['train_from_layer']
+            result['embedding_size'] = config['model']['embedding_size']
+            result['learning_rate'] = config['train']['learning_rate']
+            result['nb_epochs'] = config['train']['log_step']
+            result['acc1'] = round(acc[1], 2)
+            result['acc5'] = round(acc[5], 2)
+            result['acc10'] = round(acc[10], 2)
+            result['move_to_dataset'] = config['evaluate']['move_to_dataset']
+
+            save_res_csv(result, ALL_EXP_LOG)
                 
         if iteration % 50 and iteration > 0:
             time_finish = datetime.now().strftime("%Y%m%d-%H%M%S") + '_iter_' + str(iteration)
