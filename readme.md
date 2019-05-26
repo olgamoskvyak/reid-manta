@@ -2,6 +2,7 @@
 # Re-identification of wildlife from natural markings
 
 ## Overview
+Update v2.
 This is the implementation for re-identification system described in the paper ["Robust Re-identification of Manta Rays from Natural Markings by Learning Pose Invariant Embeddings"] by Olga Moskvyak, Frederic Maire, Asia Armstrong, Feras Dayoub and Mahsa Baktashmotlagh.
 
 In the paper, we present a novel system for re-identification of wildlife by images of natural markings. The convolutional neural  network (CNN) is trained to learn embeddings for images of natural markings, where the learned distance between embedding points corresponds to similarity between patterns. The network is optimized using the triplet loss function and the online semi-hard triplet mining strategy. The proposed re-identification method is generic and not species specific. We evaluate the proposed system  on  image  databases  of  manta  ray  belly  patterns  and  humpback  whale  flukes.
