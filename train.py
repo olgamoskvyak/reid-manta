@@ -125,7 +125,6 @@ def _main_(args):
             mymodel = Siamese(**model_args)
     elif config['model']['type'] == 'TripletPose':
         model_args['n_poses'] = config['model']['n_poses']
-        model_args['two_outputs'] = config['model']['two_outputs']
         model_args['bs'] = config['train']['cl_per_batch'] * config['train']['sampl_per_class']
         mymodel = TripletLossPoseInv(**model_args)
     elif config['model']['type'] == 'Classification':
@@ -198,7 +197,6 @@ def _main_(args):
                             n_poses = config['model']['n_poses'],
                             rotate_poses = config['model']['rotate_poses'],
                             flatten_batch= True,
-                            two_outputs = config['model']['two_outputs'],
                             perspective = config['model']['perspective'])
 
         train_generator = BatchGenerator(train_imgs, train_labels, **gen_params)
