@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
-
 def evaluate_pairs(images, labels, model, far_target, plot_file, sample_size=None):
     """Evaluate model on pairs generated from  a set of images.
     Input:

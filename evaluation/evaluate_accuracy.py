@@ -5,7 +5,7 @@ from sklearn.utils import shuffle
 import sys, os
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from utils.utils import rem_dupl
-from metrics import acck
+from metrics import acck, mapk
 
 
 def evaluate_1_vs_all(train, train_lbl, test, test_lbl, n_eval_runs=10, move_to_db = 2, k_list = [1,5,10]):
@@ -30,11 +30,13 @@ def evaluate_1_vs_all(train, train_lbl, test, test_lbl, n_eval_runs=10, move_to_
 
     #Evaluate accuracy at different k over a multiple runs. Report average results.
     acc = {k: [] for k in k_list}
+    map_dict = {k: [] for k in k_list}
     
     for i in range(n_eval_runs):
         neigh_lbl_run = []
         db_emb, db_lbl, query_emb, query_lbl = get_eval_set_one_class(train, train_lbl, test, test_lbl, 
                                                            move_to_db = move_to_db)
+        print('Number of classes in query set: ', len(db_emb)) 
 
         for j in range(len(db_emb)):
             neigh_lbl_un, _, _ = predict_k_neigh(db_emb[j], db_lbl[j], query_emb[j], k=10)
@@ -46,7 +48,9 @@ def evaluate_1_vs_all(train, train_lbl, test, test_lbl, n_eval_runs=10, move_to_
         #Calculate accuracy @k in a list of predictions
         for k in k_list:
             acc[k].append(acck(query_lbl, neigh_lbl_run, k=k))
+            map_dict[k].append(mapk(query_lbl, neigh_lbl_run, k=k))
 
+    #Report accuracy
     print('Accuracy over {} runs:'.format(n_eval_runs))
     acc_array = np.array([acc[k] for k in k_list], dtype=np.float32)
     acc_runs = np.mean(acc_array, axis=1)*100
@@ -55,8 +59,16 @@ def evaluate_1_vs_all(train, train_lbl, test, test_lbl, n_eval_runs=10, move_to_
     print('Stdev: ', std_runs)
     for i, k in enumerate(k_list):
         print('ACC@{} %{:.2f} +-{:.2f}'.format(k, acc_runs[i], std_runs[i]))
+    
+    #Report Mean average precision at k
+    print('MAP over {} runs:'.format(n_eval_runs))
+    map_array = np.array([map_dict[k] for k in k_list], dtype=np.float32)
+    map_runs = np.mean(map_array, axis=1)*100
+    std_map_runs = np.std(map_array, axis=1)*100
+    for i, k in enumerate(k_list):
+        print('MAP@{} %{:.2f} +-{:.2f}'.format(k, map_runs[i], std_map_runs[i]))
+       
     return dict(zip(k_list, acc_runs)), dict(zip(k_list, std_runs))
-    #return np.mean(np.array(acc[1])), np.mean(np.array(acc[5])), np.mean(np.array(acc[10]))
 
 def predict_k_neigh(db_emb, db_lbls, test_emb, k=5):
     '''Predict k nearest solutions for test embeddings based on labelled database embeddings.
@@ -94,8 +106,8 @@ def predict_k_neigh(db_emb, db_lbls, test_emb, k=5):
         indices = np.arange(0, len(neigh_lbl[j]))
         a, b = rem_dupl(neigh_lbl[j], indices)
         neigh_lbl_un.append(a[:k])
-        neigh_ind_un.append(neigh_ind[j][b][:k])
-        neigh_dist_un.append(neigh_dist[j][b][:k])
+        neigh_ind_un.append(neigh_ind[j][b][:k].tolist())
+        neigh_dist_un.append(neigh_dist[j][b][:k].tolist())
 
     return neigh_lbl_un, neigh_ind_un, neigh_dist_un
 

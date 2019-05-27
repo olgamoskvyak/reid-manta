@@ -2,6 +2,7 @@
 
 import numpy as np
 import keras.backend as K
+import math
 
 def apk(actual, predicted, k=10):
     """
@@ -67,7 +68,7 @@ def mapk(actual, predicted, k=10):
     """
     return np.mean([apk(a,p,k) for a,p in zip(actual, predicted)], dtype=np.float32)
 
-def acck(actual, prediction, k=5):
+def acck(actual, prediction, k=5, verbose=True):
     """Computes accuracy at k
     Input:
     actual: list or 1D numpy array of true labels
@@ -78,7 +79,8 @@ def acck(actual, prediction, k=5):
         if true_lbl in prediction[i][:k]:
             accuracy_count += 1
     accuracy = accuracy_count / len(actual)  
-    print('Predicting {} labels per input. Correct {} out of {}. ACC@{} %{:.2f}'.format(k, accuracy_count, len(actual), k, accuracy*100))
+    if verbose:
+        print('Predicting {} labels per input. Correct {} out of {}. ACC@{} %{:.2f}'.format(k, accuracy_count, len(actual), k, accuracy*100))
     return accuracy
 
 def distance(embeddings1, embeddings2, distance_metric=0):
