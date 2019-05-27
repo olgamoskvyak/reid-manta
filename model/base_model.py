@@ -7,7 +7,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from backend import DummyNetFeature, InceptionV3Feature, VGG16Feature, ResNet50Feature, MobileNetV2Feature
 from backend import InceptionResNetV2Feature
 from utils.utils import make_batches
-from top_models import glob_pool_norm, glob_pool
+from top_models import glob_pool_norm, glob_pool, glob_softmax
 from keras.callbacks import EarlyStopping, ModelCheckpoint, CSVLogger
 
 class BaseModel(object):
@@ -66,8 +66,8 @@ class BaseModel(object):
         
     def backend_model(self):
         """ Model to obtain features from a specific layer of feature extractor."""
-        self.backend_model = Model(inputs=[self.feature_extractor.input], 
-                                outputs=[self.feature_extractor.layers[self.connect_layer].output], name='features_model')
+        self.backend_model = Model(inputs=self.feature_extractor.get_input_at(0), 
+                                outputs=self.feature_extractor.layers[self.connect_layer].get_output_at(0), name='features_model')
         
     def features_shape(self):
         self.features_shape = self.backend_model.get_output_shape_at(0)[1:]
@@ -98,6 +98,9 @@ class BaseModel(object):
                                            backend_model = self.backend_model)
         elif self.frontend == 'glob_pool':
             self.top_model = glob_pool(embedding_size = self.embedding_size, 
+                                           backend_model = self.backend_model)
+        elif self.frontend == 'glob_softmax':
+            self.top_model = glob_softmax(embedding_size = self.embedding_size, 
                                            backend_model = self.backend_model)
         else:
             raise Exception('{} is not supported'.format(self.frontend))
@@ -144,7 +147,7 @@ class BaseModel(object):
         return index
             
         
-    def load_weights(self, weight_path, by_name=True):
+    def load_weights(self, weight_path, by_name=False):
         self.model.load_weights(weight_path, by_name)
         
     def set_all_layers_trainable(self):
@@ -209,18 +212,27 @@ class BaseModel(object):
                     distance = 'l2',
                     saved_weights_name='best_weights.h5',
                     logs_file = 'history.csv',
-                    plot_file = 'plot.png',
-                    debug=False):     
+                    debug=False,
+                    weights=None):     
 
         # Compile the model
-        self.compile_model(learning_rate)
+        if weights is None:
+            self.compile_model(learning_rate)
+        else:
+            self.compile_model(learning_rate, weights = weights)
         
         # Make a few callbacks
         early_stop = EarlyStopping(monitor='val_loss', 
+                           patience=5, #changed from 3
                            min_delta=0.001, 
-                           patience=3, 
                            mode='min', 
                            verbose=1)
+        reduce_plateau = ReduceLROnPlateau(monitor='val_loss', 
+                                           patience=5, 
+                                           min_delta=0.01, 
+                                           factor=0.2, 
+                                           min_lr=1e-7, 
+                                           verbose=1)
         checkpoint = ModelCheckpoint(saved_weights_name, 
                                      monitor='val_loss', 
                                      verbose=1, 
