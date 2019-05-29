@@ -375,32 +375,6 @@ def split_classification(imgs, labels, min_imgs, return_mask=False):
     else:
         return train_imgs, train_labels, valid_imgs, valid_labels
 
-    
-def resize_imgs(src, dest, size):
-    """Crop images from source folder to a specific size and save to a dest folder.
-    ---
-    Input:
-    src: string, source folder with subfolders of images
-    dest: string, target folder for resized images
-    size: 2D tuple, target size of images
-    """
-    if not os.path.exists(dest): os.mkdir(dest)
-        
-    g_s = glob(src + '/*/*')
-    print(g_s)
-    
-    for i in range(len(g_s)):
-        #Read image and resize
-        img = imread(g_s[i])
-        res = cv2.resize(img, size, interpolation = cv2.INTER_LINEAR)
-
-        #Save image to a destination folder to the same subfolder name as in a source folder
-        (head, tail) = os.path.split(g_s[i])
-        (subhead, subtail) = os.path.split(head)
-        subfolder = subtail
-        if not os.path.exists(os.path.join(dest, subfolder)): os.mkdir(os.path.join(dest, subfolder))
-
-        imsave(os.path.join(dest, subfolder, tail), res)
 
 def expand_aug(dataset, labels, n_aug, gen, return_labels=False):
     dataset_exp = np.zeros(shape=(dataset.shape[0]*n_aug,)+dataset.shape[1:], dtype=np.float32)
