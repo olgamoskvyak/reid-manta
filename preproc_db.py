@@ -134,6 +134,9 @@ if __name__ == "__main__":
             respond = md.run()
             if respond == 'exit':
                 quit()
+            if respond == 'next':
+                #do not include this image in the dataset
+                continue
             if respond == 'save' and md.done:
                 proc_count += 1
                 square = (config['model']['input_width']==config['model']['input_height'])
