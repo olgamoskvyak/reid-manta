@@ -60,6 +60,7 @@ argparser.add_argument('-d','--draw', type=str2bool, help='Activate mask drawing
 argparser.add_argument('-c','--conf', help='Path to configuration file with default parameters', default='configs/manta.json')
 argparser.add_argument('-o', '--output', help='Path to output files. Default is in config.prod.output')
 argparser.add_argument('-l','--lfile', help='List of files to process in csv file (w/header:file,label). Filenames only, not the full path. Default is in config.prod.lfile.')
+argparser.add_argument('-x','--idx', type=int, default=0, help='Index (number) of file to resume the process. Zero based. Useful for large folders')
 
     
 if __name__ == "__main__":
@@ -123,9 +124,13 @@ if __name__ == "__main__":
         
     #Count processed images
     proc_count = 0
-     
+    
+    #Sort order of the files
+    files.sort()
+   
     #Draw mask on each file and save
-    for file in files:
+    for i in range(args.idx, len(files)):
+        file = files[i]
         if draw:
             #Get filename for mask
             (_, imname) = os.path.split(file)
