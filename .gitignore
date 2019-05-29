@@ -7,17 +7,8 @@ scripts/__pycache__/
 #Datasets
 data/
 experiments/
-examples/whales/cropped
-examples/whales/masks
-examples/whales/resized
-examples/whales/query-embeddings
-examples/whales/predictions
-
-examples/manta/cropped
-examples/manta/masks
-examples/manta/resized
-examples/manta/query-embeddings
-examples/manta/predictions
+examples/whales/
+examples/manta/
 
 #Checkpoints
 .ipynb_checkpoints/
