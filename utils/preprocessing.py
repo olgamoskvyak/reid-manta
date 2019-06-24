@@ -143,7 +143,7 @@ def crop_im_by_mask(impath, maskpath, cropped_dir, padding = 0, square=True):
     #copy and crop manta image
     imdir, imfile = os.path.split(impath)
     croppedpath = os.path.join(cropped_dir, imfile)
-    imsave(croppedpath, cropped)
+    imsave(croppedpath, cropped[...,:3])
     print('Cropped by mask and saved as {}'.format(croppedpath))
     
     return croppedpath

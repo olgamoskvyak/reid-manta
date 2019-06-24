@@ -67,7 +67,7 @@ if __name__ == "__main__":
     print(__doc__)
     #Get arguments
     args = argparser.parse_args()
-    impath = args.impath
+    impath = args.impath.strip(os.sep)
     if not os.path.exists(impath):
         raise ValueError('Image file/folder does not exist. Check input.')
     
@@ -83,9 +83,9 @@ if __name__ == "__main__":
         config = json.loads(config_buffer.read())
         
     if args.output is None:
-        output_dir = config['prod']['output']
+        output_dir = config['prod']['output'].strip(os.sep)
     else:
-        output_dir = args.output
+        output_dir = args.output.strip(os.sep)
         
     if args.lfile is None:
         lfile = config['prod']['lfile']
@@ -131,6 +131,7 @@ if __name__ == "__main__":
     #Draw mask on each file and save
     for i in range(args.idx, len(files)):
         file = files[i]
+        print('Processing file {} {}'.format(i, file))
         if draw:
             #Get filename for mask
             (_, imname) = os.path.split(file)
@@ -138,8 +139,10 @@ if __name__ == "__main__":
             md = MaskDrawer(file, maskpath)
             respond = md.run()
             if respond == 'exit':
+                print('Exiting the programm')
                 quit()
             if respond == 'next':
+                print('Skipped file {} {}'.format(i, file))
                 #do not include this image in the dataset
                 continue
             if respond == 'save' and md.done:
