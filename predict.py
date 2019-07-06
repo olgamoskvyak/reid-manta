@@ -227,20 +227,21 @@ if __name__ == "__main__":
 
     #Query
     ax[0,0].imshow(image)
-    ax[0,0].set_title('Query image \n'+imfile)
+    ax[0,0].set_title('Query image \n'+imfile[:20]+'\n'+imfile[20:])
     ax[0,0].text(.5, -0.1, 'Distance from query:', ha='center',transform=ax[0,0].transAxes)
 
     #Predictions
     for i in range(5):
         for j in range(2):
-            if(len(pred_imgs[i].shape) > 2):
-                ax[j,i+1].imshow(pred_imgs[i+j*5])
-            else:
-                ax[j,i+1].imshow(pred_imgs[i+j*5], cmap='gray')
-            file = os.path.split(pred_files[i+j*5])[-1]
-            label = pred_lbl[i+j*5]
-            ax[j,i+1].set_title('Prediction '+str(i+j*5+1)+':\n'+label+'\n'+file[-25:])
-            ax[j,i+1].text(.5, -0.2, round(neigh_dist_un[i+j*5],4), ha='center',transform=ax[j,i+1].transAxes)
+            if i+j*5 < len(pred_imgs):
+                if(len(pred_imgs[i].shape) > 2):
+                    ax[j,i+1].imshow(pred_imgs[i+j*5])
+                else:
+                    ax[j,i+1].imshow(pred_imgs[i+j*5], cmap='gray')
+                file = os.path.split(pred_files[i+j*5])[-1]
+                label = pred_lbl[i+j*5]
+                ax[j,i+1].set_title('Prediction '+str(i+j*5+1)+':\n'+label+'\n'+file[-25:])
+                ax[j,i+1].text(.5, -0.2, round(neigh_dist_un[i+j*5],4), ha='center',transform=ax[j,i+1].transAxes)
     
     prediction_file = os.path.join(predict_dir, 'preds_for_'+imfile)
     plt.savefig(prediction_file)
