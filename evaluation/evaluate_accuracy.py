@@ -47,7 +47,7 @@ def evaluate_1_vs_all(train, train_lbl, test, test_lbl, n_eval_runs=10, move_to_
 
         #Calculate accuracy @k in a list of predictions
         for k in k_list:
-            acc[k].append(acck(query_lbl, neigh_lbl_run, k=k))
+            acc[k].append(acck(query_lbl, neigh_lbl_run, k=k, verbose=False))
             map_dict[k].append(mapk(query_lbl, neigh_lbl_run, k=k))
 
     #Report accuracy
