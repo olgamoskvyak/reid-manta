@@ -160,6 +160,8 @@ if __name__ == "__main__":
         resizedpath = convert_to_fmt(resizedpath, imformat = 'png')
         print('Processed {} images'.format(proc_count))
     
+    print('Total processed {} images'.format(proc_count))
+    
     #If files are supplied in one folder with labels in csv, rearrange processed it to one folder per class
     if os.path.exists(lfile):
         print('Rearranging files in directories as per labels...')
