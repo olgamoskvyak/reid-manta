@@ -50,16 +50,16 @@
     },
     
     "predict": {
-        "db-emb":              ["examples/manta/embeddings"]
+        "db-emb":              ["examples/manta-demo/predict-emb"]
         
     },
     
     "prod": {
         "prefix":              "manta-db",
-        "output":              "examples/manta/localized",
+        "output":              "examples/manta-demo",
         "lfile":               "",
-        "embeddings":          "examples/manta/embeddings",
-        "temp":                "examples/manta"
+        "embeddings":          "examples/manta-demo/db_emb",
+        "temp":                "examples/manta-demo/temp"
         
     }
 
