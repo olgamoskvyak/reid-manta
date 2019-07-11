@@ -227,12 +227,6 @@ class BaseModel(object):
                            min_delta=0.001, 
                            mode='min', 
                            verbose=1)
-        reduce_plateau = ReduceLROnPlateau(monitor='val_loss', 
-                                           patience=5, 
-                                           min_delta=0.01, 
-                                           factor=0.2, 
-                                           min_lr=1e-7, 
-                                           verbose=1)
         checkpoint = ModelCheckpoint(saved_weights_name, 
                                      monitor='val_loss', 
                                      verbose=1, 
