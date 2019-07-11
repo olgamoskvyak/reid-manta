@@ -9,6 +9,9 @@ data/
 experiments/
 examples/whales/
 examples/manta/
+examples/manta-demo/db_embs/
+examples/manta-demo/query-embeddings/
+
 
 #Checkpoints
 .ipynb_checkpoints/
