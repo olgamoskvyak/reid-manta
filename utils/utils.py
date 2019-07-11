@@ -246,3 +246,12 @@ def str2bool(v):
         return False
     else:
         raise ValueError('Boolean value expected.')
+
+def rgb2gray(rgb, data_type='uint8'):
+    """Convert from RBG to gray-scale image.
+    rbg: 4d or 3d ndarray of RGB image/images
+    data_type: string, desired data type of output
+    """
+    gray = np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
+    gray = np.stack((gray, gray, gray), -1).astype(data_type)
+    return gray
