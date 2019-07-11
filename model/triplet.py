@@ -28,7 +28,7 @@ class TripletLoss(BaseModel):
             self.model.summary()
         
         
-    def compile_model(self, learning_rate, loss_func=None):
+    def compile_model(self, learning_rate,  margin=0.5, weights=[1., 1.], loss_func=None):
         '''Compile the model'''
         loss_func = loss_func or self.loss_func
         optimizer = Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
