@@ -1,4 +1,3 @@
-
 # Re-identification of wildlife from natural markings
 
 ## Overview
@@ -12,8 +11,7 @@ In the paper, we present a novel system for re-identification of wildlife by ima
 The steps from the learning phase are computed only once. The steps for prediction phase are executed each time.
 
 ## Data
-Datasets are not included in this project as they are owned by other parties. 
-The models have been trained on datasets of manta rays belly patterns (not available publicly) and humpback whale flukes (available from [Kaggle]).
+Datasets are not included in this project as they are owned by other parties. The models have been trained on datasets of manta rays belly patterns (not available publicly) and humpback whale flukes (available from [Kaggle]). Some images from the manta ray dataset are uploaded for the demo (see below).
 
 ## Installation
 ### Anaconda environment
@@ -73,6 +71,46 @@ Run command to identify new individuals with a specific network configuration (t
 ```
 python predict.py -i test_images/image_1.jpg -c configs/manta.json
 ```
+
+## Manta ray demo
+We present a demo for the manta ray re-identification. Photo courtesy of Amelia Armstrong and Asia Armstrong.
+Files for the manta ray demo are located at `examples/manta-demo`. The model **has not been trained** on individuals used for the demo. 
+
+Images have been localized and resized so preprocessing step is skipped. Compute embeddings for images in the subdirectory `database`:
+```
+python compute_db.py -d examples/manta-demo/database -c configs/manta.json
+```
+Embeddings and corresponding meta data are saved into the output directory: `examples/manta-demo/db_embs/manta-db_emb.csv` and `examples/manta-demo/db_embs/manta-db_lbl.csv`
+
+Find matching manta rays for test images in the subdirectory `test` based on the database. Filenames of test files include true name of the manta but it is not used in the algorithm and only for evaluating results. Press `s` when a query image appears to continue. The system computes an embedding (a vector of 256 real numbers) for a query image and outputs 5 predictions which are the closest to the query embedding in the embedding space. 
+```
+python predict.py -i examples/manta-demo/test/candy-test-01.png -c configs/manta.json 
+```
+The closest prediction is a correct match even with a presence of occlusions in the query image:
+![preds_for_candy-test-01.png](https://www.dropbox.com/s/4m3ihmtyh7d692n/preds_for_candy-test-01.png?dl=0&raw=1)
+```
+python predict.py -i examples/manta-demo/test/candy-test-02.png -c configs/manta.json 
+```
+The correct match is found for the test image with a lot of noise:
+![preds_for_candy-test-02.png](https://www.dropbox.com/s/sjx999fggepubau/preds_for_candy-test-02.png?dl=0&raw=1)
+
+```
+python predict.py -i examples/manta-demo/test/april-test-01.png -c configs/manta.json 
+```
+The closest prediction is correct. The second closest is also at a small distance from the query because the pattern is very similar to the query.
+![preds_for_april-test-01.png](https://www.dropbox.com/s/d6jbftmf7utvop4/preds_for_april-test-01.png?dl=0&raw=1)
+```
+python predict.py -i examples/manta-demo/test/jel-test-01.png -c configs/manta.json 
+```
+The correct match is found with a large change in a viewing angle:
+![preds_for_jel-test-01.png](https://www.dropbox.com/s/rm1pogfp9kdgop1/preds_for_jel-test-01.png?dl=0&raw=1)
+```
+python predict.py -i examples/manta-demo/test/valentine-test-01.png -c configs/manta.json 
+```
+The closest image is the correct match:
+![preds_for_valentine-test-01.png](https://www.dropbox.com/s/hi5748stuw3b4oh/preds_for_valentine-test-01.png?dl=0&raw=1)
+
+
 
 ## Test on whales dataset
 Download the archive  of humpback whale flukes `train.zip` from [Kaggle] (registration is required) and extract it into `data` folder.
