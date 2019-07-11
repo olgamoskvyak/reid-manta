@@ -58,8 +58,8 @@
         "prefix":              "manta-db",
         "output":              "examples/manta-demo",
         "lfile":               "",
-        "embeddings":          "examples/manta-demo/db_emb",
-        "temp":                "examples/manta-demo/temp"
+        "embeddings":          "examples/manta-demo/db_embs",
+        "temp":                "examples/manta-demo"
         
     }
 
