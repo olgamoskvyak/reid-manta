@@ -1,7 +1,6 @@
 # Re-identification of wildlife from natural markings
 
 ## Overview
-Update v2.
 This is the implementation for re-identification system described in the paper ["Robust Re-identification of Manta Rays from Natural Markings by Learning Pose Invariant Embeddings"] by Olga Moskvyak, Frederic Maire, Asia Armstrong, Feras Dayoub and Mahsa Baktashmotlagh.
 
 In the paper, we present a novel system for re-identification of wildlife by images of natural markings. The convolutional neural  network (CNN) is trained to learn embeddings for images of natural markings, where the learned distance between embedding points corresponds to similarity between patterns. The network is optimized using the triplet loss function and the online semi-hard triplet mining strategy. The proposed re-identification method is generic and not species specific. We evaluate the proposed system  on  image  databases  of  manta  ray  belly  patterns  and  humpback  whale  flukes.
@@ -23,10 +22,10 @@ conda env create -f environment.yml
 Activate environment `activate tensorflow` (Windows) or `source activate tensorflow` (for Linux). All further commands are executed in conda environment.
 
 ### Dependencies
- - Python >= 3.6
- - Tensorflow >= 1.5
- - Keras >= 2.2
- - OpenCV >= 3.4
+ - Python = 3.6
+ - Tensorflow = 1.5
+ - Keras = 2.2
+ - OpenCV = 3.4
 
 To test the system with pretrained models, [download] the folder `experiments.zip` with model weights and extract it into the project folder.
 
@@ -87,28 +86,28 @@ Find matching manta rays for test images in the subdirectory `test` based on the
 python predict.py -i examples/manta-demo/test/candy-test-01.png -c configs/manta.json 
 ```
 The closest prediction is a correct match even with a presence of occlusions in the query image:
-![preds_for_candy-test-01.png](https://www.dropbox.com/s/4m3ihmtyh7d692n/preds_for_candy-test-01.png?dl=0&raw=1)
+![preds_for_candy-test-01.png](/examples/manta-demo/predictions/preds_for_candy-test-01.png)
 ```
 python predict.py -i examples/manta-demo/test/candy-test-02.png -c configs/manta.json 
 ```
 The correct match is found for the test image with a lot of noise:
-![preds_for_candy-test-02.png](https://www.dropbox.com/s/sjx999fggepubau/preds_for_candy-test-02.png?dl=0&raw=1)
+![preds_for_candy-test-02.png](/examples/manta-demo/predictions/preds_for_candy-test-02.png)
 
 ```
 python predict.py -i examples/manta-demo/test/april-test-01.png -c configs/manta.json 
 ```
 The closest prediction is correct. The second closest is also at a small distance from the query because the pattern is very similar to the query.
-![preds_for_april-test-01.png](https://www.dropbox.com/s/d6jbftmf7utvop4/preds_for_april-test-01.png?dl=0&raw=1)
+![preds_for_april-test-01.png](/examples/manta-demo/predictions/preds_for_april-test-01.png)
 ```
 python predict.py -i examples/manta-demo/test/jel-test-01.png -c configs/manta.json 
 ```
 The correct match is found with a large change in a viewing angle:
-![preds_for_jel-test-01.png](https://www.dropbox.com/s/rm1pogfp9kdgop1/preds_for_jel-test-01.png?dl=0&raw=1)
+![preds_for_jel-test-01.png](/examples/manta-demo/predictions/preds_for_jel-test-01.png)
 ```
 python predict.py -i examples/manta-demo/test/valentine-test-01.png -c configs/manta.json 
 ```
 The closest image is the correct match:
-![preds_for_valentine-test-01.png](https://www.dropbox.com/s/hi5748stuw3b4oh/preds_for_valentine-test-01.png?dl=0&raw=1)
+![preds_for_valentine-test-01.png](/examples/manta-demo/predictions/preds_for_valentine-test-01.png)
 
 
 
