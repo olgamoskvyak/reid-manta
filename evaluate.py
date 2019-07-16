@@ -1,15 +1,19 @@
 import argparse, os, sys, json
+import matplotlib
+matplotlib.use('Agg')
+
 import numpy as np
 from datetime import datetime
 
 from model.triplet import TripletLoss
+from model.siamese import Siamese
+from model.triplet_pose_model import TripletLossPoseInv
 from utils.utils import print_nested, save_res_csv, export_emb
 from utils.preprocessing import read_dataset, analyse_dataset, split_classes
 from evaluation.evaluate_pairs import evaluate_pairs
 from evaluation.evaluate_accuracy import evaluate_1_vs_all
 
-argparser = argparse.ArgumentParser(
-    description='Evaluate model on any dataset')
+argparser = argparse.ArgumentParser(description='Evaluate model on any dataset')
 
 argparser.add_argument('-c','--conf', help='path to configuration file', default='config.json')
 argparser.add_argument('-s','--split_num', help='split number for K-fold', type=int, default=-1)
@@ -94,11 +98,17 @@ def _main_(args):
                             connect_layer     = config['model']['connect_layer'],
                             train_from_layer  = config['model']['train_from_layer'],
                             loss_func         = config['model']['loss'],
-                            weights           = None)
+                            weights           = None,
+                            show_summary      = False)
     
     if config['model']['type'] == 'TripletLoss':
         mymodel = TripletLoss(**model_args)
-
+    elif config['model']['type'] == 'Siamese':
+        mymodel = Siamese(**model_args)
+    elif config['model']['type'] == 'TripletPose':
+        model_args['n_poses'] = config['model']['n_poses']
+        model_args['bs'] = config['train']['cl_per_batch'] * config['train']['sampl_per_class']
+        mymodel = TripletLossPoseInv(**model_args)
     else:
         raise Exception('{} model type is not supported'.format(config['model']['type']))    
     

@@ -55,7 +55,48 @@ def convert_to_fmt(src, imformat = 'png', logstep = 1000):
         return new_files
     else:
         return new_files[0]
-    
+
+def pad_im_to_square(impath, trg_dir):
+    """Pad image to square with a black border
+    Input:
+    impath: string, path to an image
+    trg_dir: target directory to save padded image
+    """
+    try:
+        img = imread(impath)
+ 
+        if img.shape[0] != img.shape[1]:
+            print('Padding image {} to square'.format(impath))
+            size = max(img.shape[0], img.shape[1])
+            #print('Larger side is {}'.format(size))
+            if len(img.shape)>2:
+                target_img = np.zeros((size, size, img.shape[2]), dtype=np.uint8)
+            else:
+                target_img = np.zeros((size, size), dtype=np.uint8)
+            
+            if img.shape[0] > img.shape[1]:
+                margin = round((img.shape[0] - img.shape[1]) / 2 )
+                if len(img.shape)>2:
+                    target_img[:, margin:margin+img.shape[1],:] = img
+                else:
+                    target_img[:, margin:margin+img.shape[1]] = img
+            else:
+                margin = round((img.shape[1] - img.shape[0]) / 2 )
+                if len(img.shape)>2:
+                    target_img[margin:margin+img.shape[0],:,:] = img
+                else:
+                    target_img[margin:margin+img.shape[0],:] = img
+
+            #plt.imshow(target_img)
+            new_filename = os.path.join(trg_dir, os.path.basename(impath))
+            new_path, new_file = os.path.split(new_filename)
+            if not os.path.exists(new_path): os.makedirs(new_path)
+            imsave(new_filename, target_img)
+            return new_filename
+        else:
+            return impath
+    except Exception as e:
+        print(e)   
         
 def crop_im_by_mask(impath, maskpath, cropped_dir, padding = 0, square=True):
     """Crop an image by masks. Cropped image is a square size if possible.
@@ -102,7 +143,7 @@ def crop_im_by_mask(impath, maskpath, cropped_dir, padding = 0, square=True):
     #copy and crop manta image
     imdir, imfile = os.path.split(impath)
     croppedpath = os.path.join(cropped_dir, imfile)
-    imsave(croppedpath, cropped)
+    imsave(croppedpath, cropped[...,:3])
     print('Cropped by mask and saved as {}'.format(croppedpath))
     
     return croppedpath
@@ -314,7 +355,44 @@ def split_classes(dataset, labels, test_size=0.15, seed=None, return_mask=False,
     else:
         return dataset_t, labels_t, dataset_v, labels_v
 
-        
+
+def split_classification(imgs, labels, min_imgs, return_mask=False):
+    """Split set to test and validation so that every class in validation equal number of images"""
+    u_labels = np.unique(labels)
+    #Move some images to validation set
+    indexes_tovalid = np.array([np.random.choice(np.where(labels == lab)[0], size=min_imgs, replace=False) for lab in u_labels])
+    mask_tovalid = np.array([True if i in indexes_tovalid else False for i in range(labels.shape[0])])
+    
+    #Split sets as per mask
+    train_imgs = imgs[~mask_tovalid]
+    train_labels = labels[~mask_tovalid]
+    valid_imgs = imgs[mask_tovalid]
+    valid_labels = labels[mask_tovalid]
+    print('Moved {} images for each class to validation set'.format(min_imgs))
+    print('Test set: {} valid set: {}'.format(train_imgs.shape, valid_imgs.shape))
+    if return_mask:
+        return train_imgs, train_labels, valid_imgs, valid_labels, mask_tovalid
+    else:
+        return train_imgs, train_labels, valid_imgs, valid_labels
+
+
+def expand_aug(dataset, labels, n_aug, gen, return_labels=False):
+    dataset_exp = np.zeros(shape=(dataset.shape[0]*n_aug,)+dataset.shape[1:], dtype=np.float32)
+    labels_exp = np.empty(shape=(labels.shape[0]*n_aug,), dtype=labels.dtype)
+    print('Shape of expanded set {}'.format(dataset_exp.shape))
+    for i in range(dataset.shape[0]):        
+        start_idx = i*n_aug
+        end_idx = (i+1)*n_aug
+        dataset_exp[start_idx:end_idx]=np.array([gen.random_transform(dataset[i]) for j in range(n_aug)])
+        labels_exp[start_idx:end_idx]=np.array([labels[i] for j in range(n_aug)])
+        if (i%1000 == 0) and i!=0:
+            print('Processed %d images' % i)
+            
+    if return_labels:
+        return dataset_exp, labels_exp
+    else:
+        return dataset_exp
+           
     
 def analyse_dataset(imgs, lbls, name=None):
     """Analyse labelled dataset

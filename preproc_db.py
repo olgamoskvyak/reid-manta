@@ -60,13 +60,14 @@ argparser.add_argument('-d','--draw', type=str2bool, help='Activate mask drawing
 argparser.add_argument('-c','--conf', help='Path to configuration file with default parameters', default='configs/manta.json')
 argparser.add_argument('-o', '--output', help='Path to output files. Default is in config.prod.output')
 argparser.add_argument('-l','--lfile', help='List of files to process in csv file (w/header:file,label). Filenames only, not the full path. Default is in config.prod.lfile.')
+argparser.add_argument('-x','--idx', type=int, default=0, help='Index (number) of file to resume the process. Zero based. Useful for large folders')
 
     
 if __name__ == "__main__":
     print(__doc__)
     #Get arguments
     args = argparser.parse_args()
-    impath = args.impath
+    impath = args.impath.strip(os.sep)
     if not os.path.exists(impath):
         raise ValueError('Image file/folder does not exist. Check input.')
     
@@ -82,9 +83,9 @@ if __name__ == "__main__":
         config = json.loads(config_buffer.read())
         
     if args.output is None:
-        output_dir = config['prod']['output']
+        output_dir = config['prod']['output'].strip(os.sep)
     else:
-        output_dir = args.output
+        output_dir = args.output.strip(os.sep)
         
     if args.lfile is None:
         lfile = config['prod']['lfile']
@@ -123,9 +124,14 @@ if __name__ == "__main__":
         
     #Count processed images
     proc_count = 0
-     
+    
+    #Sort order of the files
+    files.sort()
+   
     #Draw mask on each file and save
-    for file in files:
+    for i in range(args.idx, len(files)):
+        file = files[i]
+        print('Processing file {} {}'.format(i, file))
         if draw:
             #Get filename for mask
             (_, imname) = os.path.split(file)
@@ -133,7 +139,12 @@ if __name__ == "__main__":
             md = MaskDrawer(file, maskpath)
             respond = md.run()
             if respond == 'exit':
+                print('Exiting the programm')
                 quit()
+            if respond == 'next':
+                print('Skipped file {} {}'.format(i, file))
+                #do not include this image in the dataset
+                continue
             if respond == 'save' and md.done:
                 proc_count += 1
                 square = (config['model']['input_width']==config['model']['input_height'])
@@ -148,6 +159,8 @@ if __name__ == "__main__":
         resizedpath = resize_imgs(croppedpath, output_dir, size)
         resizedpath = convert_to_fmt(resizedpath, imformat = 'png')
         print('Processed {} images'.format(proc_count))
+    
+    print('Total processed {} images'.format(proc_count))
     
     #If files are supplied in one folder with labels in csv, rearrange processed it to one folder per class
     if os.path.exists(lfile):

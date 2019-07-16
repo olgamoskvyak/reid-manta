@@ -18,7 +18,7 @@ from evaluation.metrics import distance
 class TripletLoss(BaseModel):
     def __init__(self, backend, input_shape, frontend, embedding_size, 
                  connect_layer=-1, train_from_layer = 0, distance = 'l2', loss_func = 'semi_hard_triplet',
-                 weights='imagenet', show_summary=False):
+                 weights='imagenet', show_summary=True):
         self.loss_func = loss_func
         super(TripletLoss, self).__init__(input_shape, backend, frontend, embedding_size, 
                                  connect_layer, train_from_layer, distance, weights)
@@ -28,8 +28,9 @@ class TripletLoss(BaseModel):
             self.model.summary()
         
         
-    def compile_model(self, learning_rate):
+    def compile_model(self, learning_rate,  margin=0.5, weights=[1., 1.], loss_func=None):
         '''Compile the model'''
+        loss_func = loss_func or self.loss_func
         optimizer = Adam(lr=learning_rate, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
         if self.loss_func == 'semi_hard_triplet':
             self.model.compile(loss=triplet_semihard_loss, optimizer=optimizer)
@@ -52,6 +53,7 @@ class TripletLoss(BaseModel):
         dist_embed:  array of distances
         actual_issame: array of booleans, True if positive pair, False if negative pair
         """
+        # Run forward pass to calculate embeddings
         print('Generating pairs and computing embeddings...')
 
         #Define generator to loop over data

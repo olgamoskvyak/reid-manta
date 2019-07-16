@@ -1,6 +1,7 @@
 {
     "model" : {
-        "type":                 "TripletLoss",
+        "comment":              "Model trained with pose variance loss",
+        "type":                 "TripletPose",
         "backend":              "InceptionV3",
         "connect_layer":        -1,
         "precomp_feat":         false,
@@ -9,12 +10,12 @@
         "input_width":          300,
         "input_height":         300,
         "embedding_size":       256,
-        "loss":                 "semi_hard_triplet",
-	"n_poses":               1,
+        "loss":                 "semihard_pose_loss",
+        "n_poses":               4,
         "average":               false,
-        "rotate_poses":          false,
+        "rotate_poses":          true,
         "two_outputs":           false,
-        "perspective":           false
+        "perspective":           true
     },
     
     "data": {
@@ -27,15 +28,15 @@
         "pretrained_weights":   "",
         "batch_size":           32,
         "learning_rate":        1e-5,
-        "nb_epochs":            400,
+        "nb_epochs":            300,
         "log_step":             10,
         "distance":             "l2",
         "exp_dir":              "experiments",
-        "exp_id":               "manta-final",
+        "exp_id":               "manta-pose-inv",
         "debug":                false,
         "aug_rate":            "manta",
-        "cl_per_batch":        15,
-        "sampl_per_class":     5,
+        "cl_per_batch":        6,
+        "sampl_per_class":     4,
         "equal_k":             true,
         "verbose":             1
     },
@@ -50,9 +51,10 @@
     },
     
     "general": {
-            "stdout-file":          true    
+        "stdout-file":         true    
         
     },
+       
     
     "predict": {
         "db-emb":              ["examples/manta-demo/predict-emb"]
@@ -67,6 +69,5 @@
         "temp":                "examples/manta-demo"
         
     }
-
     
 }
