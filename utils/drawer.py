@@ -75,6 +75,8 @@ class MaskDrawer(object):
         cv2.imshow(self.filename,self.img)
         print('To localize the pattern, draw a line around it. Press s to continue')
         print('If no localization is required, press s to continue')
+        print('Press q to move to next image without saving')
+        print('Press esc to exit the drawing tool')
         
         cv2.waitKey(1)
         cv2.setMouseCallback(self.filename, self.on_mouse)

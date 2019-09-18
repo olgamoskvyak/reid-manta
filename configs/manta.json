@@ -61,7 +61,7 @@
     
     "prod": {
         "prefix":              "manta-db",
-        "output":              "examples/manta-demo",
+        "output":              "examples/manta-demo/db_localised",
         "lfile":               "",
         "embeddings":          "examples/manta-demo/db_embs",
         "temp":                "examples/manta-demo"

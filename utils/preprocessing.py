@@ -200,7 +200,9 @@ def get_bound_box(filename):
 
     #Threshold mask
     ret,thresholded = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
-    contours = cv2.findContours(thresholded, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[1]
+    #Lots of changes in return variables in function findContours
+    #https://stackoverflow.com/questions/48291581/how-to-use-cv2-findcontours-in-different-opencv-versions/48292371#48292371
+    contours = cv2.findContours(thresholded, cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)[-2]
     # Choose largest contour
     best = 0
     maxsize = 0
