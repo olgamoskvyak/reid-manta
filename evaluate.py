@@ -54,9 +54,9 @@ def _main_(args):
     #Get test set if exists, otherwise split train set
     if os.path.exists(config['evaluate']['test_set']):
         print('Loading test set from {}'.format(config['evaluate']['test_set']))
-        test_imgs, test_names, _, files_train = read_dataset(config['evaluate']['test_set'], 
+        test_imgs, test_names, _, files_test = read_dataset(config['evaluate']['test_set'], 
                                                 original_labels=True, return_filenames=True)
-        train_imgs, train_names, _, files_test= read_dataset(config['data']['train_image_folder'], 
+        train_imgs, train_names, _, files_train= read_dataset(config['data']['train_image_folder'], 
                                                   original_labels=True, return_filenames=True)
         overlap = all(np.isin(train_names, test_names))
         print('Overlap between train and test set in individual names: ', overlap)
@@ -66,7 +66,8 @@ def _main_(args):
         name2lab.update({v:k for k,v in name2lab.items()})
         train_labels = np.array([name2lab[name] for name in train_names])
         test_labels = np.array([name2lab[name] for name in test_names])
-        
+        files_train = np.array(files_train)
+        files_test = np.array(files_test)        
         
     else:
         print('Loading validation split from {}'.format(config['data']['train_image_folder']))
