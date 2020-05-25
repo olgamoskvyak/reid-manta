@@ -262,9 +262,17 @@ def read_dataset(img_dir, data_type='uint8', return_filenames=False, original_la
 
     for i, file in enumerate(filenames):
         if data_type == 'float32':
-            img = img_as_float(imread(file))
+            try:
+                img = img_as_float(imread(file))
+            except:
+                raise ValueError('ERROR! Cannot read file: {}'.format(file))
+
         elif data_type == 'uint8':
-            img = imread(file)
+            try:
+                img = imread(file)
+            except:
+                raise ValueError('ERROR! Cannot read file: {}'.format(file))
+
         else:
             raise ValueError('Incorrect data type')
 
